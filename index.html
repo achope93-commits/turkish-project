@@ -484,23 +484,44 @@ const voiceUnsupported = document.getElementById('voiceUnsupported');
 let recognitionLang = 'tr-TR';
 let isListening = false;
 let recognition = null;
+let finalTranscript = '';
+let silenceTimer = null;
+const SILENCE_TIMEOUT_MS = 4000; // oprește microfonul după 4s de tăcere completă
 
 const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if(SpeechRecognitionAPI){
   recognition = new SpeechRecognitionAPI();
-  recognition.continuous = false;
-  recognition.interimResults = false;
+  recognition.continuous = true;
+  recognition.interimResults = true;
   recognition.maxAlternatives = 1;
+
+  function resetSilenceTimer(){
+    clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(()=>{
+      if(isListening) recognition.stop();
+    }, SILENCE_TIMEOUT_MS);
+  }
 
   recognition.onstart = ()=>{
     isListening = true;
+    finalTranscript = '';
     micBtn.classList.add('listening');
     micBtn.innerHTML = '⏺';
+    resetSilenceTimer();
   };
   recognition.onresult = (event)=>{
-    const transcript = event.results[0][0].transcript;
-    chatInput.value = transcript;
+    let interim = '';
+    for(let i = event.resultIndex; i < event.results.length; i++){
+      const transcript = event.results[i][0].transcript;
+      if(event.results[i].isFinal){
+        finalTranscript += transcript + ' ';
+      } else {
+        interim += transcript;
+      }
+    }
+    chatInput.value = (finalTranscript + interim).trim();
+    resetSilenceTimer();
   };
   recognition.onerror = (event)=>{
     console.error('Eroare recunoaștere vocală:', event.error);
@@ -509,6 +530,7 @@ if(SpeechRecognitionAPI){
     isListening = false;
     micBtn.classList.remove('listening');
     micBtn.innerHTML = '🎤';
+    clearTimeout(silenceTimer);
   };
 
   micBtn.onclick = ()=>{
