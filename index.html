@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Türkçe Konuş — Vorbește turca cu Claude</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C3B57;
+    --iznik:#1D8A99;
+    --tulip:#C8443C;
+    --saffron:#D9A441;
+    --ivory:#FBF7EE;
+    --charcoal:#26241F;
+    --line: rgba(28,59,87,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--ivory);
+    color:var(--charcoal);
+    font-family:'Source Sans 3', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Fraunces', serif; color:var(--ink); margin:0; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .wrap{ max-width:900px; margin:0 auto; padding:0 20px; }
+
+  /* ---------- Header ---------- */
+  header.hero{
+    position:relative; overflow:hidden;
+    background:var(--ink); color:var(--ivory);
+    padding:44px 0 34px;
+  }
+  .tile-pattern{ position:absolute; inset:0; opacity:0.10; pointer-events:none; }
+  header.hero .eyebrow{
+    font-family:'JetBrains Mono', monospace; letter-spacing:0.14em; text-transform:uppercase;
+    font-size:12px; color:var(--saffron); margin-bottom:14px; display:flex; align-items:center; gap:10px;
+  }
+  header.hero .eyebrow::before{ content:""; width:20px; height:1px; background:var(--saffron); }
+  header.hero h1{ color:var(--ivory); font-size:clamp(28px,4.4vw,42px); font-weight:700; line-height:1.08; max-width:640px; }
+  header.hero h1 em{ font-style:italic; color:var(--saffron); }
+  header.hero p.lede{ max-width:520px; margin-top:14px; font-size:15.5px; line-height:1.55; color:rgba(251,247,238,0.8); }
+
+  /* ---------- Setup panel ---------- */
+  .setup{ padding:30px 0 8px; }
+  .setup-row{ margin-bottom:20px; }
+  .setup-label{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:0.08em; text-transform:uppercase;
+    color:rgba(38,36,31,0.5); margin-bottom:10px;
+  }
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{
+    border:1px solid var(--line); background:#fff; border-radius:999px;
+    padding:9px 16px; font-size:14px; font-weight:600; color:var(--ink);
+    cursor:pointer; transition:all .15s ease; font-family:'Source Sans 3',sans-serif;
+  }
+  .chip:hover{ border-color:var(--iznik); }
+  .chip.active{ background:var(--iznik); border-color:var(--iznik); color:#fff; }
+
+  /* ---------- Chat shell ---------- */
+  .chat-shell{
+    background:#fff; border:1px solid var(--line); border-radius:20px;
+    display:flex; flex-direction:column; height:520px; overflow:hidden;
+    margin:22px 0 40px;
+  }
+  .chat-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; border-bottom:1px solid var(--line); background:#F4EEDF;
+  }
+  .chat-head .who{ display:flex; align-items:center; gap:10px; }
+  .avatar{
+    width:36px; height:36px; border-radius:50%; background:var(--tulip);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; font-family:'Fraunces',serif; font-weight:600;
+  }
+  .who-text .name{ font-weight:700; font-size:14.5px; color:var(--ink); }
+  .who-text .status{ font-size:12px; color:rgba(38,36,31,0.5); font-family:'JetBrains Mono',monospace; }
+  .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--iznik); display:inline-block; margin-right:5px; }
+  .reset-btn{
+    border:1px solid var(--line); background:#fff; border-radius:999px; padding:7px 14px;
+    font-size:12.5px; font-weight:600; color:var(--ink); cursor:pointer;
+  }
+  .reset-btn:hover{ border-color:var(--tulip); color:var(--tulip); }
+
+  .chat-body{ flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
+  .bubble-row{ display:flex; flex-direction:column; max-width:78%; }
+  .bubble-row.user{ align-self:flex-end; align-items:flex-end; }
+  .bubble-row.ai{ align-self:flex-start; align-items:flex-start; }
+  .bubble{
+    padding:12px 16px; border-radius:16px; font-size:15px; line-height:1.5;
+  }
+  .bubble-row.user .bubble{ background:var(--ink); color:var(--ivory); border-bottom-right-radius:4px; }
+  .bubble-row.ai .bubble{ background:#F4EEDF; color:var(--charcoal); border-bottom-left-radius:4px; }
+  .bubble .tr-text{ font-weight:600; }
+  .bubble .ro-text{ margin-top:5px; font-size:12.5px; opacity:0.65; font-style:italic; }
+  .tip-card{
+    margin-top:6px; padding:9px 13px; border-radius:10px;
+    background:rgba(217,164,65,0.16); border:1px solid rgba(217,164,65,0.4);
+    font-size:12.5px; color:#8a5f13; max-width:100%;
+  }
+  .tip-card b{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; display:block; margin-bottom:3px; color:#a06a10; }
+
+  .typing-row{ display:flex; gap:4px; padding:12px 16px; background:#F4EEDF; border-radius:16px; border-bottom-left-radius:4px; width:fit-content; }
+  .typing-dot{ width:6px; height:6px; border-radius:50%; background:rgba(38,36,31,0.35); animation:blink 1.2s infinite ease-in-out; }
+  .typing-dot:nth-child(2){ animation-delay:0.15s; }
+  .typing-dot:nth-child(3){ animation-delay:0.3s; }
+  @keyframes blink{ 0%,80%,100%{ opacity:0.25; } 40%{ opacity:1; } }
+
+  .chat-input{
+    display:flex; gap:8px; padding:14px 16px; border-top:1px solid var(--line);
+  }
+  .chat-input input{
+    flex:1; border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+    font-size:15px; font-family:'Source Sans 3',sans-serif; outline:none;
+  }
+  .chat-input input:focus{ border-color:var(--iznik); }
+  .send-btn{
+    background:var(--ink); color:var(--ivory); border:none; border-radius:12px;
+    padding:0 20px; font-weight:700; cursor:pointer; font-size:14.5px;
+    transition:background .15s ease;
+  }
+  .send-btn:hover{ background:var(--iznik); }
+  .send-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  .mic-btn{
+    width:44px; height:44px; flex:none; border-radius:12px; border:1px solid var(--line);
+    background:#fff; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center;
+    transition:all .15s ease; color:var(--ink);
+  }
+  .mic-btn:hover{ border-color:var(--iznik); }
+  .mic-btn.listening{
+    background:var(--tulip); border-color:var(--tulip); color:#fff;
+    animation:pulse 1.2s infinite ease-in-out;
+  }
+  .mic-btn:disabled{ opacity:0.35; cursor:not-allowed; }
+  @keyframes pulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(200,68,60,0.45); }
+    50%{ box-shadow:0 0 0 8px rgba(200,68,60,0); }
+  }
+
+  .voice-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:0 4px; margin-top:10px; margin-bottom:26px; flex-wrap:wrap;
+  }
+  .lang-toggle{ display:flex; gap:6px; align-items:center; }
+  .lang-toggle .lchip{
+    border:1px solid var(--line); background:#fff; border-radius:999px;
+    padding:6px 12px; font-size:12.5px; font-weight:600; color:var(--ink);
+    cursor:pointer; transition:all .15s ease;
+  }
+  .lang-toggle .lchip.active{ background:var(--ink); border-color:var(--ink); color:#fff; }
+  .autoplay-toggle{
+    display:flex; align-items:center; gap:7px; font-size:12.5px; color:rgba(38,36,31,0.6);
+    font-family:'JetBrains Mono',monospace; cursor:pointer; user-select:none;
+  }
+  .autoplay-toggle input{ accent-color:var(--iznik); width:14px; height:14px; }
+
+  .speaker-btn{
+    border:none; background:rgba(28,59,87,0.08); border-radius:50%;
+    width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:12px; margin-top:6px; color:var(--ink); transition:all .15s ease;
+  }
+  .speaker-btn:hover{ background:var(--iznik); color:#fff; }
+  .speaker-btn.speaking{ background:var(--iznik); color:#fff; }
+
+  .voice-unsupported{
+    font-size:12px; color:rgba(38,36,31,0.4); font-family:'JetBrains Mono',monospace; text-align:center; margin-top:8px;
+  }
+
+  .empty-state{
+    margin:auto; text-align:center; color:rgba(38,36,31,0.45); font-size:14px; padding:20px;
+  }
+  .empty-state .big{ font-family:'Fraunces',serif; font-size:20px; color:var(--ink); margin-bottom:6px; }
+
+  .hint-bar{
+    font-size:12.5px; color:rgba(38,36,31,0.45); text-align:center; margin-top:-24px; margin-bottom:36px;
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  footer{ padding:10px 0 50px; text-align:center; color:rgba(38,36,31,0.4); font-size:13px; font-family:'JetBrains Mono',monospace; }
+
+  @media (max-width:640px){
+    .chat-shell{ height:70vh; }
+    .bubble-row{ max-width:88%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <svg class="tile-pattern" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <pattern id="cini" width="50" height="50" patternUnits="userSpaceOnUse">
+        <circle cx="25" cy="25" r="18" fill="none" stroke="#D9A441" stroke-width="1"/>
+        <path d="M25 7 L43 25 L25 43 L7 25 Z" fill="none" stroke="#1D8A99" stroke-width="1"/>
+        <circle cx="25" cy="25" r="4" fill="#C8443C"/>
+      </pattern>
+    </defs>
+    <rect width="400" height="400" fill="url(#cini)"/>
+  </svg>
+  <div class="wrap">
+    <div class="eyebrow">Konuşma Pratiği · Exersare vorbită</div>
+    <h1>Discută în turcă, <em>cu un partener</em> care te corectează.</h1>
+    <p class="lede">Alege un scenariu și un nivel, apoi scrie — în turcă sau română, cum ești mai comod. Claude îți răspunde în turcă, cu traducere și corecturi blânde.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="setup">
+    <div class="setup-row">
+      <div class="setup-label">Scenariu</div>
+      <div class="chip-row" id="scenarioChips"></div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-label">Nivel</div>
+      <div class="chip-row" id="levelChips"></div>
+    </div>
+  </div>
+
+  <div class="chat-shell">
+    <div class="chat-head">
+      <div class="who">
+        <div class="avatar">C</div>
+        <div class="who-text">
+          <div class="name" id="partnerName">Partener de conversație</div>
+          <div class="status"><span class="status-dot"></span><span id="partnerStatus">gata de discuție</span></div>
+        </div>
+      </div>
+      <button class="reset-btn" id="resetBtn">Reîncepe</button>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="empty-state" id="emptyState">
+        <div class="big">Merhaba! 👋</div>
+        <div>Scrie primul mesaj mai jos ca să înceapă conversația.</div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <button class="mic-btn" id="micBtn" title="Vorbește">🎤</button>
+      <input type="text" id="chatInput" placeholder="Scrie sau apasă microfonul..." />
+      <button class="send-btn" id="sendBtn">Trimite</button>
+    </div>
+  </div>
+  <div class="voice-bar">
+    <div class="lang-toggle">
+      <span class="setup-label" style="margin:0;">Vorbesc în:</span>
+      <button class="lchip active" id="langTR" type="button">🇹🇷 Turcă</button>
+      <button class="lchip" id="langRO" type="button">🇷🇴 Română</button>
+    </div>
+    <label class="autoplay-toggle">
+      <input type="checkbox" id="autoplayToggle" checked />
+      Redă automat răspunsurile
+    </label>
+  </div>
+  <div class="voice-unsupported" id="voiceUnsupported" style="display:none;">Recunoașterea vocală nu e suportată în acest browser — încearcă Chrome sau Edge.</div>
+</div>
+
+<footer class="wrap">Türkçe Konuş — conversație susținută de Claude</footer>
+
+<script>
+const SCENARIOS = {
+  free: {
+    label: "Liber",
+    persona: "Ești un prieten turc prietenos care discută despre orice subiect cotidian cu un începător care învață turca."
+  },
+  restaurant: {
+    label: "La restaurant",
+    persona: "Ești un chelner într-un restaurant din Istanbul. Interacționezi cu un client care încearcă să comande în turcă, îl întrebi ce dorește, îi recomanzi feluri de mâncare."
+  },
+  piata: {
+    label: "La piață",
+    persona: "Ești un vânzător la piața din cartierul Kadıköy, Istanbul. Vinzi fructe, legume și brânzeturi. Interacționezi cu un client care vrea să cumpere ceva și negociază prețul."
+  },
+  prezentare: {
+    label: "Prezentare",
+    persona: "Ești o persoană nouă cunoscută pe care utilizatorul o întâlnește pentru prima dată. Faci small-talk: nume, de unde ești, ce faci."
+  },
+  indicatii: {
+    label: "Indicații stradale",
+    persona: "Ești un trecător pe stradă în Istanbul. Utilizatorul te oprește să te întrebe cum ajunge undeva (metrou, muzeu, plajă etc.) și tu îi dai indicații."
+  },
+  aeroport: {
+    label: "La aeroport",
+    persona: "Ești un agent la ghișeul de check-in al unui aeroport din Turcia. Ajuți utilizatorul cu bagajele, locul la avion și informații despre zbor."
+  }
+};
+
+const LEVELS = {
+  incepator: {
+    label: "Începător",
+    instr: "Folosește propoziții foarte scurte și simple, vocabular de bază, prezent simplu. Vorbește rar, ca pentru cineva la primele lecții de turcă."
+  },
+  intermediar: {
+    label: "Intermediar",
+    instr: "Folosește propoziții de complexitate medie, introdu vocabular puțin mai variat, dar rămâi clar și accesibil."
+  },
+  avansat: {
+    label: "Avansat",
+    instr: "Vorbește natural, ca într-o conversație reală între vorbitori fluenți, cu expresii idiomatice și structuri gramaticale mai complexe."
+  }
+};
+
+let currentScenario = 'free';
+let currentLevel = 'incepator';
+let history = []; // {role:'user'|'assistant', tr, ro, note}
+let isLoading = false;
+
+const scenarioChips = document.getElementById('scenarioChips');
+const levelChips = document.getElementById('levelChips');
+const chatBody = document.getElementById('chatBody');
+const emptyState = document.getElementById('emptyState');
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+const partnerName = document.getElementById('partnerName');
+const partnerStatus = document.getElementById('partnerStatus');
+
+function renderChips(){
+  scenarioChips.innerHTML = '';
+  Object.entries(SCENARIOS).forEach(([key,val])=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (key===currentScenario ? ' active' : '');
+    b.textContent = val.label;
+    b.onclick = ()=>{ currentScenario = key; resetConversation(); renderChips(); };
+    scenarioChips.appendChild(b);
+  });
+  levelChips.innerHTML = '';
+  Object.entries(LEVELS).forEach(([key,val])=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (key===currentLevel ? ' active' : '');
+    b.textContent = val.label;
+    b.onclick = ()=>{ currentLevel = key; resetConversation(); renderChips(); };
+    levelChips.appendChild(b);
+  });
+  partnerName.textContent = SCENARIOS[currentScenario].label;
+}
+
+function resetConversation(){
+  history = [];
+  chatBody.innerHTML = '';
+  chatBody.appendChild(emptyState);
+  partnerStatus.textContent = 'gata de discuție';
+}
+
+document.getElementById('resetBtn').onclick = resetConversation;
+
+function addBubble(role, tr, ro, note){
+  if(emptyState.parentNode) emptyState.remove();
+  const row = document.createElement('div');
+  row.className = 'bubble-row ' + (role==='user' ? 'user' : 'ai');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = `<div class="tr-text">${escapeHtml(tr)}</div>` + (ro ? `<div class="ro-text">${escapeHtml(ro)}</div>` : '');
+  row.appendChild(bubble);
+
+  if(role === 'assistant' && speechSupported){
+    const foot = document.createElement('div');
+    foot.className = 'bubble-foot';
+    const spk = document.createElement('button');
+    spk.className = 'speaker-btn';
+    spk.title = 'Ascultă';
+    spk.innerHTML = '🔊';
+    spk.onclick = ()=> speak(tr, spk);
+    foot.appendChild(spk);
+    row.appendChild(foot);
+  }
+
+  if(note){
+    const tip = document.createElement('div');
+    tip.className = 'tip-card';
+    tip.innerHTML = `<b>Sfat</b>${escapeHtml(note)}`;
+    row.appendChild(tip);
+  }
+  chatBody.appendChild(row);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function showTyping(){
+  const row = document.createElement('div');
+  row.className = 'bubble-row ai';
+  row.id = 'typingRow';
+  row.innerHTML = `<div class="typing-row"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  chatBody.appendChild(row);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+function hideTyping(){
+  const el = document.getElementById('typingRow');
+  if(el) el.remove();
+}
+
+function buildSystemPrompt(){
+  return `Ești un partener de conversație pentru cineva care învață limba turcă, vorbitor nativ de română.
+Rol/scenariu: ${SCENARIOS[currentScenario].persona}
+Nivel: ${LEVELS[currentLevel].instr}
+
+Reguli:
+- Răspunde ÎNTOTDEAUNA în limba turcă, rămânând complet în rol conform scenariului.
+- Dacă utilizatorul a scris în română, răspunde tot ca și cum ai înțeles ce a vrut să spună, dar în turcă.
+- Dacă utilizatorul a făcut o greșeală gramaticală sau de vocabular evidentă în turcă, scrie o observație scurtă și prietenoasă în română (max 20 de cuvinte) explicând corectarea. Dacă nu a greșit sau a scris în română, lasă acest câmp gol.
+- Ține conversația naturală, pune și tu întrebări, nu doar răspunde.
+- Nu ieși niciodată din rolul scenariului.
+
+Răspunde STRICT în format JSON valid, fără backticks, fără text suplimentar, cu exact aceste câmpuri:
+{"tr": "răspunsul tău în turcă", "ro": "traducerea în română a răspunsului tău", "note": "observație/corectare scurtă în română sau string gol"}`;
+}
+
+async function sendMessage(){
+  const text = chatInput.value.trim();
+  if(!text || isLoading) return;
+  chatInput.value = '';
+  addBubble('user', text, null, null);
+  history.push({role:'user', content: text});
+  isLoading = true;
+  sendBtn.disabled = true;
+  partnerStatus.textContent = 'scrie...';
+  showTyping();
+
+  try {
+    const apiMessages = history.map(h => ({
+      role: h.role,
+      content: h.role === 'assistant' ? h.trRaw : h.content
+    }));
+
+    const response = await fetch("/.netlify/functions/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system: buildSystemPrompt(),
+        messages: apiMessages
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Eroare necunoscută de la server.');
+    }
+    const rawText = (data.content || []).map(b => b.text || '').join('');
+    const clean = rawText.replace(/```json|```/g, '').trim();
+    let parsed;
+    try {
+      parsed = JSON.parse(clean);
+    } catch(e){
+      parsed = { tr: rawText || "Üzgünüm, bir hata oldu.", ro: "A apărut o eroare la procesarea răspunsului.", note: "" };
+    }
+
+    hideTyping();
+    addBubble('assistant', parsed.tr, parsed.ro, parsed.note);
+    history.push({role:'assistant', content: JSON.stringify(parsed), trRaw: parsed.tr});
+    partnerStatus.textContent = 'gata de discuție';
+    if(autoplayToggle && autoplayToggle.checked){
+      const lastSpeaker = chatBody.querySelector('.bubble-row.ai:last-of-type .speaker-btn');
+      speak(parsed.tr, lastSpeaker);
+    }
+  } catch(err){
+    hideTyping();
+    addBubble('assistant', 'Bağlantı hatası.', 'A apărut o eroare de conexiune. Încearcă din nou.', null);
+    partnerStatus.textContent = 'eroare de conexiune';
+    console.error(err);
+  } finally {
+    isLoading = false;
+    sendBtn.disabled = false;
+    chatInput.focus();
+  }
+}
+
+sendBtn.onclick = sendMessage;
+chatInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') sendMessage(); });
+
+renderChips();
+
+// ===================== VOICE: Speech-to-Text (microfon) =====================
+const micBtn = document.getElementById('micBtn');
+const langTR = document.getElementById('langTR');
+const langRO = document.getElementById('langRO');
+const autoplayToggle = document.getElementById('autoplayToggle');
+const voiceUnsupported = document.getElementById('voiceUnsupported');
+
+let recognitionLang = 'tr-TR';
+let isListening = false;
+let recognition = null;
+
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(SpeechRecognitionAPI){
+  recognition = new SpeechRecognitionAPI();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = ()=>{
+    isListening = true;
+    micBtn.classList.add('listening');
+    micBtn.innerHTML = '⏺';
+  };
+  recognition.onresult = (event)=>{
+    const transcript = event.results[0][0].transcript;
+    chatInput.value = transcript;
+  };
+  recognition.onerror = (event)=>{
+    console.error('Eroare recunoaștere vocală:', event.error);
+  };
+  recognition.onend = ()=>{
+    isListening = false;
+    micBtn.classList.remove('listening');
+    micBtn.innerHTML = '🎤';
+  };
+
+  micBtn.onclick = ()=>{
+    if(isListening){
+      recognition.stop();
+      return;
+    }
+    recognition.lang = recognitionLang;
+    try { recognition.start(); } catch(e){ console.error(e); }
+  };
+} else {
+  micBtn.disabled = true;
+  voiceUnsupported.style.display = 'block';
+}
+
+langTR.onclick = ()=>{
+  recognitionLang = 'tr-TR';
+  langTR.classList.add('active');
+  langRO.classList.remove('active');
+};
+langRO.onclick = ()=>{
+  recognitionLang = 'ro-RO';
+  langRO.classList.add('active');
+  langTR.classList.remove('active');
+};
+
+// ===================== VOICE: Text-to-Speech (redare răspuns) =====================
+const speechSupported = 'speechSynthesis' in window;
+let turkishVoice = null;
+
+function loadVoices(){
+  if(!speechSupported) return;
+  const voices = window.speechSynthesis.getVoices();
+  turkishVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('tr')) || null;
+}
+if(speechSupported){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function speak(text, btnEl){
+  if(!speechSupported || !text) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'tr-TR';
+  if(turkishVoice) utter.voice = turkishVoice;
+  utter.rate = 0.95;
+
+  document.querySelectorAll('.speaker-btn.speaking').forEach(b=> b.classList.remove('speaking'));
+  if(btnEl) btnEl.classList.add('speaking');
+
+  utter.onend = ()=>{ if(btnEl) btnEl.classList.remove('speaking'); };
+  utter.onerror = ()=>{ if(btnEl) btnEl.classList.remove('speaking'); };
+
+  window.speechSynthesis.speak(utter);
+}
+</script>
+
+</body>
+</html>
