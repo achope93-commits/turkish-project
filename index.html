@@ -449,6 +449,12 @@ Răspunde STRICT în format JSON valid, fără backticks, fără text suplimenta
 async function sendMessage(){
   const text = chatInput.value.trim();
   if(!text || isLoading) return;
+  if(typeof isListening !== 'undefined' && isListening && recognition){
+    isListening = false;
+    recognition.stop();
+    micBtn.classList.remove('listening');
+    micBtn.innerHTML = '🎤';
+  }
   chatInput.value = '';
   addBubble('user', text, null, null);
   history.push({role:'user', content: text});
