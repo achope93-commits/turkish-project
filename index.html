@@ -489,23 +489,36 @@ const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechReco
 
 if(SpeechRecognitionAPI){
   recognition = new SpeechRecognitionAPI();
-  recognition.continuous = false;
+  recognition.continuous = true;
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
 
+  let finalTranscript = '';
+
   recognition.onstart = ()=>{
     isListening = true;
+    finalTranscript = '';
     micBtn.classList.add('listening');
     micBtn.innerHTML = '⏺';
   };
   recognition.onresult = (event)=>{
-    const transcript = event.results[0][0].transcript;
-    chatInput.value = transcript;
+    for(let i = event.resultIndex; i < event.results.length; i++){
+      if(event.results[i].isFinal){
+        finalTranscript += event.results[i][0].transcript + ' ';
+      }
+    }
+    chatInput.value = finalTranscript.trim();
   };
   recognition.onerror = (event)=>{
     console.error('Eroare recunoaștere vocală:', event.error);
   };
   recognition.onend = ()=>{
+    // Unele browsere opresc singure recunoașterea continuă după o vreme
+    // (ex. tăcere lungă sau limită internă) — dacă utilizatorul nu a apăsat
+    // manual stop, o repornim automat ca microfonul să rămână "pornit".
+    if(isListening){
+      try { recognition.start(); return; } catch(e){ /* ignoră, oprește normal */ }
+    }
     isListening = false;
     micBtn.classList.remove('listening');
     micBtn.innerHTML = '🎤';
@@ -513,7 +526,10 @@ if(SpeechRecognitionAPI){
 
   micBtn.onclick = ()=>{
     if(isListening){
+      isListening = false; // marcat înainte de stop, ca onend să nu repornească
       recognition.stop();
+      micBtn.classList.remove('listening');
+      micBtn.innerHTML = '🎤';
       return;
     }
     recognition.lang = recognitionLang;
