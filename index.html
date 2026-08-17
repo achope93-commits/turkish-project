@@ -17,7 +17,7 @@
     --line: rgba(28,59,87,0.14);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;height:100%;}
+  html,body{margin:0;padding:0;height:100%;overflow-x:hidden;}
   body{
     background:var(--ivory);
     color:var(--charcoal);
@@ -182,8 +182,44 @@
   footer{ padding:10px 0 50px; text-align:center; color:rgba(38,36,31,0.4); font-size:13px; font-family:'JetBrains Mono',monospace; }
 
   @media (max-width:640px){
-    .chat-shell{ height:70vh; }
-    .bubble-row{ max-width:88%; }
+    .wrap{ padding:0 14px; }
+    header.hero{ padding:32px 0 26px; }
+    header.hero .eyebrow{ font-size:10.5px; margin-bottom:10px; }
+    header.hero h1{ font-size:26px; line-height:1.15; }
+    header.hero p.lede{ font-size:14px; margin-top:10px; }
+
+    .setup{ padding:20px 0 4px; }
+    .setup-row{ margin-bottom:14px; }
+    .chip{ padding:7px 13px; font-size:13px; }
+
+    .chat-shell{ height:72vh; border-radius:16px; margin:16px 0 24px; }
+    .chat-head{ padding:12px 14px; }
+    .avatar{ width:30px; height:30px; font-size:14px; }
+    .who-text .name{ font-size:13.5px; }
+    .who-text .status{ font-size:11px; }
+    .reset-btn{ padding:6px 11px; font-size:11.5px; }
+
+    .chat-body{ padding:14px; gap:10px; }
+    .bubble-row{ max-width:90%; }
+    .bubble{ padding:10px 13px; font-size:14px; }
+    .bubble .ro-text{ font-size:12px; }
+
+    .chat-input{ padding:10px 12px; gap:6px; }
+    .chat-input input{ padding:11px 12px; font-size:14.5px; min-width:0; }
+    .mic-btn{ width:40px; height:40px; font-size:15px; }
+    .send-btn{ padding:0 14px; font-size:13.5px; }
+
+    .voice-bar{ flex-direction:column; align-items:flex-start; gap:10px; margin-bottom:20px; }
+    .lang-toggle{ width:100%; flex-wrap:wrap; }
+    .autoplay-toggle{ font-size:11.5px; }
+
+    footer{ padding:6px 0 36px; font-size:11.5px; }
+  }
+
+  @media (max-width:400px){
+    header.hero h1{ font-size:23px; }
+    .chip-row{ gap:6px; }
+    .chip{ padding:6px 11px; font-size:12.5px; }
   }
 </style>
 </head>
@@ -497,7 +533,6 @@ if(SpeechRecognitionAPI){
 
   recognition.onstart = ()=>{
     isListening = true;
-    finalTranscript = '';
     micBtn.classList.add('listening');
     micBtn.innerHTML = '⏺';
   };
@@ -515,7 +550,8 @@ if(SpeechRecognitionAPI){
   recognition.onend = ()=>{
     // Unele browsere opresc singure recunoașterea continuă după o vreme
     // (ex. tăcere lungă sau limită internă) — dacă utilizatorul nu a apăsat
-    // manual stop, o repornim automat ca microfonul să rămână "pornit".
+    // manual stop, o repornim automat ca microfonul să rămână "pornit",
+    // fără să pierdem ce s-a transcris deja (finalTranscript NU se resetează aici).
     if(isListening){
       try { recognition.start(); return; } catch(e){ /* ignoră, oprește normal */ }
     }
@@ -532,6 +568,7 @@ if(SpeechRecognitionAPI){
       micBtn.innerHTML = '🎤';
       return;
     }
+    finalTranscript = chatInput.value ? chatInput.value.trim() + ' ' : ''; // pornește de la ce e deja scris în câmp
     recognition.lang = recognitionLang;
     try { recognition.start(); } catch(e){ console.error(e); }
   };
