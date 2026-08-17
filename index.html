@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Türkçe Konuş — Vorbește turca cu Claude</title>
+<title id="pageTitle">Konuşma Pratiği — Vorbește cu Claude</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -40,8 +40,7 @@
     font-size:12px; color:var(--saffron); margin-bottom:14px; display:flex; align-items:center; gap:10px;
   }
   header.hero .eyebrow::before{ content:""; width:20px; height:1px; background:var(--saffron); }
-  header.hero h1{ color:var(--ivory); font-size:clamp(28px,4.4vw,42px); font-weight:700; line-height:1.08; max-width:640px; }
-  header.hero h1 em{ font-style:italic; color:var(--saffron); }
+  header.hero h1{ color:var(--ivory); font-size:clamp(26px,4.4vw,42px); font-weight:700; line-height:1.1; max-width:640px; }
   header.hero p.lede{ max-width:520px; margin-top:14px; font-size:15.5px; line-height:1.55; color:rgba(251,247,238,0.8); }
 
   /* ---------- Setup panel ---------- */
@@ -59,6 +58,7 @@
   }
   .chip:hover{ border-color:var(--iznik); }
   .chip.active{ background:var(--iznik); border-color:var(--iznik); color:#fff; }
+  .chip.lang-chip{ display:flex; align-items:center; gap:6px; }
 
   /* ---------- Chat shell ---------- */
   .chat-shell{
@@ -113,7 +113,7 @@
   }
   .chat-input input{
     flex:1; border:1px solid var(--line); border-radius:12px; padding:12px 14px;
-    font-size:15px; font-family:'Source Sans 3',sans-serif; outline:none;
+    font-size:15px; font-family:'Source Sans 3',sans-serif; outline:none; min-width:0;
   }
   .chat-input input:focus{ border-color:var(--iznik); }
   .send-btn{
@@ -144,7 +144,7 @@
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:0 4px; margin-top:10px; margin-bottom:26px; flex-wrap:wrap;
   }
-  .lang-toggle{ display:flex; gap:6px; align-items:center; }
+  .lang-toggle{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
   .lang-toggle .lchip{
     border:1px solid var(--line); background:#fff; border-radius:999px;
     padding:6px 12px; font-size:12.5px; font-weight:600; color:var(--ink);
@@ -185,7 +185,7 @@
     .wrap{ padding:0 14px; }
     header.hero{ padding:32px 0 26px; }
     header.hero .eyebrow{ font-size:10.5px; margin-bottom:10px; }
-    header.hero h1{ font-size:26px; line-height:1.15; }
+    header.hero h1{ font-size:24px; line-height:1.18; }
     header.hero p.lede{ font-size:14px; margin-top:10px; }
 
     .setup{ padding:20px 0 4px; }
@@ -205,19 +205,19 @@
     .bubble .ro-text{ font-size:12px; }
 
     .chat-input{ padding:10px 12px; gap:6px; }
-    .chat-input input{ padding:11px 12px; font-size:14.5px; min-width:0; }
+    .chat-input input{ padding:11px 12px; font-size:14.5px; }
     .mic-btn{ width:40px; height:40px; font-size:15px; }
     .send-btn{ padding:0 14px; font-size:13.5px; }
 
     .voice-bar{ flex-direction:column; align-items:flex-start; gap:10px; margin-bottom:20px; }
-    .lang-toggle{ width:100%; flex-wrap:wrap; }
+    .lang-toggle{ width:100%; }
     .autoplay-toggle{ font-size:11.5px; }
 
     footer{ padding:6px 0 36px; font-size:11.5px; }
   }
 
   @media (max-width:400px){
-    header.hero h1{ font-size:23px; }
+    header.hero h1{ font-size:21px; }
     .chip-row{ gap:6px; }
     .chip{ padding:6px 11px; font-size:12.5px; }
   }
@@ -237,20 +237,28 @@
     <rect width="400" height="400" fill="url(#cini)"/>
   </svg>
   <div class="wrap">
-    <div class="eyebrow">Konuşma Pratiği · Exersare vorbită</div>
-    <h1>Discută în turcă, <em>cu un partener</em> care te corectează.</h1>
-    <p class="lede">Alege un scenariu și un nivel, apoi scrie — în turcă sau română, cum ești mai comod. Claude îți răspunde în turcă, cu traducere și corecturi blânde.</p>
+    <div class="eyebrow" id="heroEyebrow">Konuşma Pratiği</div>
+    <h1 id="heroTitle">Discută, cu un partener care te corectează.</h1>
+    <p class="lede" id="heroLede">Alege limbile, un scenariu și un nivel, apoi scrie sau vorbește.</p>
   </div>
 </header>
 
 <div class="wrap">
   <div class="setup">
     <div class="setup-row">
-      <div class="setup-label">Scenariu</div>
+      <div class="setup-label" id="nativeLabel">Vorbesc nativ</div>
+      <div class="chip-row" id="nativeChips"></div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-label" id="targetLabel">Vreau să exersez</div>
+      <div class="chip-row" id="targetChips"></div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-label" id="scenarioLabel">Scenariu</div>
       <div class="chip-row" id="scenarioChips"></div>
     </div>
     <div class="setup-row">
-      <div class="setup-label">Nivel</div>
+      <div class="setup-label" id="levelLabel">Nivel</div>
       <div class="chip-row" id="levelChips"></div>
     </div>
   </div>
@@ -260,7 +268,7 @@
       <div class="who">
         <div class="avatar">C</div>
         <div class="who-text">
-          <div class="name" id="partnerName">Partener de conversație</div>
+          <div class="name" id="partnerNameEl">Partener de conversație</div>
           <div class="status"><span class="status-dot"></span><span id="partnerStatus">gata de discuție</span></div>
         </div>
       </div>
@@ -268,8 +276,8 @@
     </div>
     <div class="chat-body" id="chatBody">
       <div class="empty-state" id="emptyState">
-        <div class="big">Merhaba! 👋</div>
-        <div>Scrie primul mesaj mai jos ca să înceapă conversația.</div>
+        <div class="big" id="emptyGreeting">Merhaba! 👋</div>
+        <div id="emptyGreetingSub">Scrie sau vorbește primul mesaj ca să înceapă conversația.</div>
       </div>
     </div>
     <div class="chat-input">
@@ -280,113 +288,274 @@
   </div>
   <div class="voice-bar">
     <div class="lang-toggle">
-      <span class="setup-label" style="margin:0;">Vorbesc în:</span>
-      <button class="lchip active" id="langTR" type="button">🇹🇷 Turcă</button>
-      <button class="lchip" id="langRO" type="button">🇷🇴 Română</button>
+      <span class="setup-label" id="speakInLabel" style="margin:0;">Vorbesc în:</span>
+      <div class="chip-row" id="sttLangContainer"></div>
     </div>
     <label class="autoplay-toggle">
       <input type="checkbox" id="autoplayToggle" checked />
-      Redă automat răspunsurile
+      <span id="autoplayLabelText">Redă automat răspunsurile</span>
     </label>
   </div>
-  <div class="voice-unsupported" id="voiceUnsupported" style="display:none;">Recunoașterea vocală nu e suportată în acest browser — încearcă Chrome sau Edge.</div>
+  <div class="voice-unsupported" id="voiceUnsupported" style="display:none;">Recunoașterea vocală nu e suportată în acest browser.</div>
 </div>
 
-<footer class="wrap">Türkçe Konuş — conversație susținută de Claude</footer>
+<footer class="wrap" id="footerText">Konuşma Pratiği — conversație susținută de Claude</footer>
 
 <script>
-const SCENARIOS = {
-  free: {
-    label: "Liber",
-    persona: "Ești un prieten turc prietenos care discută despre orice subiect cotidian cu un începător care învață turca."
+// ===================== LANGUAGES =====================
+const LANGS = {
+  ro: { code:'ro-RO', flag:'🇷🇴', selfName:'Română', englishName:'Romanian' },
+  tr: { code:'tr-TR', flag:'🇹🇷', selfName:'Türkçe', englishName:'Turkish' },
+  it: { code:'it-IT', flag:'🇮🇹', selfName:'Italiano', englishName:'Italian' }
+};
+
+const NATIVE_OPTIONS = ['ro','tr'];
+const TARGETS_BY_NATIVE = { ro:['tr','it'], tr:['ro'] };
+
+// Numele limbii țintă, scris în limba nativă a utilizatorului (pentru UI)
+const TARGET_NAME_IN_NATIVE = {
+  ro: { tr:'turcă', it:'italiană', ro:'română' },
+  tr: { ro:'Rumence', tr:'Türkçe', it:'İtalyanca' }
+};
+
+const GREETING_IN_TARGET = { tr:'Merhaba! 👋', it:'Ciao! 👋', ro:'Bună! 👋' };
+
+const CITY_BY_TARGET = {
+  tr: { city:'Istanbul', country:'Turcia' },
+  it: { city:'Roma', country:'Italia' },
+  ro: { city:'București', country:'România' }
+};
+
+// ===================== UI STRINGS (interfața, în funcție de limba nativă) =====================
+const UI = {
+  ro: {
+    eyebrow: (t)=> `Exersare vorbită · ${t.selfName}`,
+    heroTitle: (targetName)=> `Discută în ${targetName}, cu un partener care te corectează.`,
+    lede: (targetName, nativeName)=> `Alege un scenariu și un nivel, apoi scrie sau vorbește — în ${targetName} sau ${nativeName}, cum ești mai comod. Claude îți răspunde în ${targetName}, cu traducere și corecturi blânde.`,
+    nativeLabel: "Vorbesc nativ",
+    targetLabel: "Vreau să exersez",
+    scenarioLabel: "Scenariu",
+    levelLabel: "Nivel",
+    inputPlaceholder: "Scrie sau apasă microfonul...",
+    sendBtn: "Trimite",
+    resetBtn: "Reîncepe",
+    partnerName: "Partener de conversație",
+    partnerReady: "gata de discuție",
+    partnerTyping: "scrie...",
+    partnerErrorStatus: "eroare de conexiune",
+    connectionErrorReply: "Bağlantı hatası.",
+    connectionErrorNote: "A apărut o eroare de conexiune. Încearcă din nou.",
+    emptyGreetingSub: "Scrie sau vorbește primul mesaj ca să înceapă conversația.",
+    speakInLabel: "Vorbesc în:",
+    autoplayLabel: "Redă automat răspunsurile",
+    unsupportedMsg: "Recunoașterea vocală nu e suportată în acest browser — încearcă Chrome sau Edge.",
+    hintBar: "apasă Enter pentru a trimite",
+    footerText: "conversație susținută de Claude",
+    tipLabel: "Sfat",
+    micTitle: "Vorbește",
+    speakerTitle: "Ascultă",
+    scenarioLabels: { free:'Liber', restaurant:'La restaurant', piata:'La piață', prezentare:'Prezentare', indicatii:'Indicații stradale', aeroport:'La aeroport' },
+    levelLabels: { incepator:'Începător', intermediar:'Intermediar', avansat:'Avansat' }
   },
-  restaurant: {
-    label: "La restaurant",
-    persona: "Ești un chelner într-un restaurant din Istanbul. Interacționezi cu un client care încearcă să comande în turcă, îl întrebi ce dorește, îi recomanzi feluri de mâncare."
-  },
-  piata: {
-    label: "La piață",
-    persona: "Ești un vânzător la piața din cartierul Kadıköy, Istanbul. Vinzi fructe, legume și brânzeturi. Interacționezi cu un client care vrea să cumpere ceva și negociază prețul."
-  },
-  prezentare: {
-    label: "Prezentare",
-    persona: "Ești o persoană nouă cunoscută pe care utilizatorul o întâlnește pentru prima dată. Faci small-talk: nume, de unde ești, ce faci."
-  },
-  indicatii: {
-    label: "Indicații stradale",
-    persona: "Ești un trecător pe stradă în Istanbul. Utilizatorul te oprește să te întrebe cum ajunge undeva (metrou, muzeu, plajă etc.) și tu îi dai indicații."
-  },
-  aeroport: {
-    label: "La aeroport",
-    persona: "Ești un agent la ghișeul de check-in al unui aeroport din Turcia. Ajuți utilizatorul cu bagajele, locul la avion și informații despre zbor."
+  tr: {
+    eyebrow: (t)=> `Konuşma pratiği · ${t.selfName}`,
+    heroTitle: (targetName)=> `${targetName} konuş, seni düzelten bir partnerle.`,
+    lede: (targetName, nativeName)=> `Bir senaryo ve bir seviye seç, sonra yaz ya da konuş — ${targetName} ya da ${nativeName}, nasıl rahatsan. Claude sana ${targetName} dilinde cevap verir, çeviri ve nazik düzeltmelerle.`,
+    nativeLabel: "Ana dilim",
+    targetLabel: "Pratik yapmak istediğim dil",
+    scenarioLabel: "Senaryo",
+    levelLabel: "Seviye",
+    inputPlaceholder: "Yaz ya da mikrofona bas...",
+    sendBtn: "Gönder",
+    resetBtn: "Sıfırla",
+    partnerName: "Konuşma partneri",
+    partnerReady: "sohbete hazır",
+    partnerTyping: "yazıyor...",
+    partnerErrorStatus: "bağlantı hatası",
+    connectionErrorReply: "Eroare de conexiune.",
+    connectionErrorNote: "Bir bağlantı hatası oluştu. Tekrar dene.",
+    emptyGreetingSub: "Sohbeti başlatmak için ilk mesajı yaz ya da söyle.",
+    speakInLabel: "Konuştuğum dil:",
+    autoplayLabel: "Yanıtları otomatik oku",
+    unsupportedMsg: "Bu tarayıcıda ses tanıma desteklenmiyor — Chrome veya Edge deneyin.",
+    hintBar: "göndermek için Enter'a bas",
+    footerText: "Claude destekli konuşma",
+    tipLabel: "İpucu",
+    micTitle: "Konuş",
+    speakerTitle: "Dinle",
+    scenarioLabels: { free:'Serbest', restaurant:'Restoranda', piata:'Pazarda', prezentare:'Tanışma', indicatii:'Yol tarifi', aeroport:'Havalimanında' },
+    levelLabels: { incepator:'Başlangıç', intermediar:'Orta', avansat:'İleri' }
   }
+};
+
+// ===================== SCENARIOS / LEVELS (instrucțiuni interne pentru Claude) =====================
+const SCENARIOS = {
+  free: (city,country)=> `Ești un prieten prietenos din ${city}, ${country}, care discută cu un începător ce exersează limba despre subiecte cotidiene.`,
+  restaurant: (city,country)=> `Ești un chelner într-un restaurant din ${city}, ${country}. Interacționezi cu un client care încearcă să comande, îl întrebi ce dorește, îi recomanzi feluri de mâncare locale.`,
+  piata: (city,country)=> `Ești un vânzător la o piață locală din ${city}, ${country}. Vinzi fructe, legume și produse locale. Interacționezi cu un client care vrea să cumpere ceva și poate negociază prețul.`,
+  prezentare: (city,country)=> `Ești o persoană nou cunoscută în ${city}, ${country}, pe care utilizatorul o întâlnește pentru prima dată. Faci small-talk: nume, de unde ești, ce faci.`,
+  indicatii: (city,country)=> `Ești un trecător pe stradă în ${city}, ${country}. Utilizatorul te oprește să te întrebe cum ajunge undeva și tu îi dai indicații.`,
+  aeroport: (city,country)=> `Ești un agent la ghișeul de check-in al unui aeroport din ${country}. Ajuți utilizatorul cu bagajele, locul la avion și informații despre zbor.`
 };
 
 const LEVELS = {
-  incepator: {
-    label: "Începător",
-    instr: "Folosește propoziții foarte scurte și simple, vocabular de bază, prezent simplu. Vorbește rar, ca pentru cineva la primele lecții de turcă."
-  },
-  intermediar: {
-    label: "Intermediar",
-    instr: "Folosește propoziții de complexitate medie, introdu vocabular puțin mai variat, dar rămâi clar și accesibil."
-  },
-  avansat: {
-    label: "Avansat",
-    instr: "Vorbește natural, ca într-o conversație reală între vorbitori fluenți, cu expresii idiomatice și structuri gramaticale mai complexe."
-  }
+  incepator: "Folosește propoziții foarte scurte și simple, vocabular de bază, prezent simplu. Vorbește rar, ca pentru cineva la primele lecții.",
+  intermediar: "Folosește propoziții de complexitate medie, introdu vocabular puțin mai variat, dar rămâi clar și accesibil.",
+  avansat: "Vorbește natural, ca într-o conversație reală între vorbitori fluenți, cu expresii idiomatice și structuri gramaticale mai complexe."
 };
 
+// ===================== STATE =====================
+let currentNative = 'ro';
+let currentTarget = 'tr';
 let currentScenario = 'free';
 let currentLevel = 'incepator';
-let history = []; // {role:'user'|'assistant', tr, ro, note}
+let history = [];
 let isLoading = false;
 
+// ===================== DOM refs =====================
+const nativeChips = document.getElementById('nativeChips');
+const targetChips = document.getElementById('targetChips');
 const scenarioChips = document.getElementById('scenarioChips');
 const levelChips = document.getElementById('levelChips');
 const chatBody = document.getElementById('chatBody');
 const emptyState = document.getElementById('emptyState');
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
-const partnerName = document.getElementById('partnerName');
+const partnerNameEl = document.getElementById('partnerNameEl');
 const partnerStatus = document.getElementById('partnerStatus');
 
-function renderChips(){
-  scenarioChips.innerHTML = '';
-  Object.entries(SCENARIOS).forEach(([key,val])=>{
+function ui(){ return UI[currentNative]; }
+
+// ===================== RENDER: language chips =====================
+function renderNativeChips(){
+  nativeChips.innerHTML = '';
+  NATIVE_OPTIONS.forEach(key=>{
+    const lang = LANGS[key];
     const b = document.createElement('button');
-    b.className = 'chip' + (key===currentScenario ? ' active' : '');
-    b.textContent = val.label;
-    b.onclick = ()=>{ currentScenario = key; resetConversation(); renderChips(); };
-    scenarioChips.appendChild(b);
+    b.className = 'chip lang-chip' + (key===currentNative ? ' active' : '');
+    b.innerHTML = `${lang.flag} ${lang.selfName}`;
+    b.onclick = ()=>{
+      currentNative = key;
+      if(!TARGETS_BY_NATIVE[currentNative].includes(currentTarget)){
+        currentTarget = TARGETS_BY_NATIVE[currentNative][0];
+      }
+      resetConversation();
+      renderAll();
+    };
+    nativeChips.appendChild(b);
   });
-  levelChips.innerHTML = '';
-  Object.entries(LEVELS).forEach(([key,val])=>{
-    const b = document.createElement('button');
-    b.className = 'chip' + (key===currentLevel ? ' active' : '');
-    b.textContent = val.label;
-    b.onclick = ()=>{ currentLevel = key; resetConversation(); renderChips(); };
-    levelChips.appendChild(b);
-  });
-  partnerName.textContent = SCENARIOS[currentScenario].label;
 }
 
+function renderTargetChips(){
+  targetChips.innerHTML = '';
+  TARGETS_BY_NATIVE[currentNative].forEach(key=>{
+    const lang = LANGS[key];
+    const b = document.createElement('button');
+    b.className = 'chip lang-chip' + (key===currentTarget ? ' active' : '');
+    b.innerHTML = `${lang.flag} ${lang.selfName}`;
+    b.onclick = ()=>{ currentTarget = key; resetConversation(); renderAll(); };
+    targetChips.appendChild(b);
+  });
+}
+
+function renderScenarioChips(){
+  scenarioChips.innerHTML = '';
+  Object.keys(SCENARIOS).forEach(key=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (key===currentScenario ? ' active' : '');
+    b.textContent = ui().scenarioLabels[key];
+    b.onclick = ()=>{ currentScenario = key; resetConversation(); renderScenarioChips(); };
+    scenarioChips.appendChild(b);
+  });
+}
+
+function renderLevelChips(){
+  levelChips.innerHTML = '';
+  Object.keys(LEVELS).forEach(key=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (key===currentLevel ? ' active' : '');
+    b.textContent = ui().levelLabels[key];
+    b.onclick = ()=>{ currentLevel = key; resetConversation(); renderLevelChips(); };
+    levelChips.appendChild(b);
+  });
+}
+
+function renderSTTLangChips(){
+  const container = document.getElementById('sttLangContainer');
+  container.innerHTML = '';
+  const options = [currentTarget, currentNative];
+  options.forEach((key, idx)=>{
+    const lang = LANGS[key];
+    const b = document.createElement('button');
+    b.className = 'lchip' + (idx===0 ? ' active' : '');
+    b.type = 'button';
+    b.innerHTML = `${lang.flag} ${lang.selfName}`;
+    b.onclick = ()=>{
+      recognitionLang = lang.code;
+      container.querySelectorAll('.lchip').forEach(c=>c.classList.remove('active'));
+      b.classList.add('active');
+    };
+    container.appendChild(b);
+  });
+  recognitionLang = LANGS[currentTarget].code;
+}
+
+// ===================== APPLY UI TEXT =====================
+function applyUIText(){
+  const u = ui();
+  const targetLang = LANGS[currentTarget];
+  const nativeLang = LANGS[currentNative];
+  const targetName = TARGET_NAME_IN_NATIVE[currentNative][currentTarget];
+  const nativeName = TARGET_NAME_IN_NATIVE[currentNative][currentNative];
+
+  document.getElementById('pageTitle').textContent = `${u.eyebrow(targetLang)} — Claude`;
+  document.getElementById('heroEyebrow').textContent = u.eyebrow(targetLang);
+  document.getElementById('heroTitle').textContent = u.heroTitle(targetName);
+  document.getElementById('heroLede').textContent = u.lede(targetName, nativeName);
+  document.getElementById('nativeLabel').textContent = u.nativeLabel;
+  document.getElementById('targetLabel').textContent = u.targetLabel;
+  document.getElementById('scenarioLabel').textContent = u.scenarioLabel;
+  document.getElementById('levelLabel').textContent = u.levelLabel;
+  chatInput.placeholder = u.inputPlaceholder;
+  sendBtn.textContent = u.sendBtn;
+  document.getElementById('resetBtn').textContent = u.resetBtn;
+  partnerNameEl.textContent = u.partnerName;
+  partnerStatus.textContent = u.partnerReady;
+  document.getElementById('emptyGreeting').textContent = GREETING_IN_TARGET[currentTarget];
+  document.getElementById('emptyGreetingSub').textContent = u.emptyGreetingSub;
+  document.getElementById('speakInLabel').textContent = u.speakInLabel;
+  document.getElementById('autoplayLabelText').textContent = u.autoplayLabel;
+  document.getElementById('voiceUnsupported').textContent = u.unsupportedMsg;
+  document.getElementById('footerText').textContent = u.footerText;
+  document.getElementById('micBtn').title = u.micTitle;
+}
+
+function renderAll(){
+  renderNativeChips();
+  renderTargetChips();
+  renderScenarioChips();
+  renderLevelChips();
+  renderSTTLangChips();
+  applyUIText();
+}
+
+// ===================== CHAT LOGIC =====================
 function resetConversation(){
   history = [];
   chatBody.innerHTML = '';
   chatBody.appendChild(emptyState);
-  partnerStatus.textContent = 'gata de discuție';
+  if(document.getElementById('partnerStatus')) partnerStatus.textContent = ui().partnerReady;
 }
 
 document.getElementById('resetBtn').onclick = resetConversation;
 
-function addBubble(role, tr, ro, note){
+function addBubble(role, mainText, translation, note){
   if(emptyState.parentNode) emptyState.remove();
   const row = document.createElement('div');
   row.className = 'bubble-row ' + (role==='user' ? 'user' : 'ai');
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-  bubble.innerHTML = `<div class="tr-text">${escapeHtml(tr)}</div>` + (ro ? `<div class="ro-text">${escapeHtml(ro)}</div>` : '');
+  bubble.innerHTML = `<div class="tr-text">${escapeHtml(mainText)}</div>` + (translation ? `<div class="ro-text">${escapeHtml(translation)}</div>` : '');
   row.appendChild(bubble);
 
   if(role === 'assistant' && speechSupported){
@@ -394,9 +563,9 @@ function addBubble(role, tr, ro, note){
     foot.className = 'bubble-foot';
     const spk = document.createElement('button');
     spk.className = 'speaker-btn';
-    spk.title = 'Ascultă';
+    spk.title = ui().speakerTitle;
     spk.innerHTML = '🔊';
-    spk.onclick = ()=> speak(tr, spk);
+    spk.onclick = ()=> speak(mainText, spk);
     foot.appendChild(spk);
     row.appendChild(foot);
   }
@@ -404,7 +573,7 @@ function addBubble(role, tr, ro, note){
   if(note){
     const tip = document.createElement('div');
     tip.className = 'tip-card';
-    tip.innerHTML = `<b>Sfat</b>${escapeHtml(note)}`;
+    tip.innerHTML = `<b>${ui().tipLabel}</b>${escapeHtml(note)}`;
     row.appendChild(tip);
   }
   chatBody.appendChild(row);
@@ -431,19 +600,25 @@ function hideTyping(){
 }
 
 function buildSystemPrompt(){
-  return `Ești un partener de conversație pentru cineva care învață limba turcă, vorbitor nativ de română.
-Rol/scenariu: ${SCENARIOS[currentScenario].persona}
-Nivel: ${LEVELS[currentLevel].instr}
+  const target = LANGS[currentTarget].englishName;
+  const native = LANGS[currentNative].englishName;
+  const { city, country } = CITY_BY_TARGET[currentTarget];
+  const persona = SCENARIOS[currentScenario](city, country);
+  const levelInstr = LEVELS[currentLevel];
+
+  return `Ești un partener de conversație pentru cineva care exersează limba ${target}, vorbitor nativ de ${native}.
+Rol/scenariu: ${persona}
+Nivel: ${levelInstr}
 
 Reguli:
-- Răspunde ÎNTOTDEAUNA în limba turcă, rămânând complet în rol conform scenariului.
-- Dacă utilizatorul a scris în română, răspunde tot ca și cum ai înțeles ce a vrut să spună, dar în turcă.
-- Dacă utilizatorul a făcut o greșeală gramaticală sau de vocabular evidentă în turcă, scrie o observație scurtă și prietenoasă în română (max 20 de cuvinte) explicând corectarea. Dacă nu a greșit sau a scris în română, lasă acest câmp gol.
+- Răspunde ÎNTOTDEAUNA în limba ${target}, rămânând complet în rol conform scenariului.
+- Dacă utilizatorul a scris în ${native}, răspunde tot ca și cum ai înțeles ce a vrut să spună, dar în ${target}.
+- Dacă utilizatorul a făcut o greșeală gramaticală sau de vocabular evidentă în ${target}, scrie o observație scurtă și prietenoasă în ${native} (max 20 de cuvinte) explicând corectarea. Dacă nu a greșit sau a scris în ${native}, lasă acest câmp gol.
 - Ține conversația naturală, pune și tu întrebări, nu doar răspunde.
 - Nu ieși niciodată din rolul scenariului.
 
 Răspunde STRICT în format JSON valid, fără backticks, fără text suplimentar, cu exact aceste câmpuri:
-{"tr": "răspunsul tău în turcă", "ro": "traducerea în română a răspunsului tău", "note": "observație/corectare scurtă în română sau string gol"}`;
+{"reply": "răspunsul tău în ${target}", "translation": "traducerea în ${native} a răspunsului tău", "note": "observație/corectare scurtă în ${native} sau string gol"}`;
 }
 
 async function sendMessage(){
@@ -460,13 +635,13 @@ async function sendMessage(){
   history.push({role:'user', content: text});
   isLoading = true;
   sendBtn.disabled = true;
-  partnerStatus.textContent = 'scrie...';
+  partnerStatus.textContent = ui().partnerTyping;
   showTyping();
 
   try {
     const apiMessages = history.map(h => ({
       role: h.role,
-      content: h.role === 'assistant' ? h.trRaw : h.content
+      content: h.role === 'assistant' ? h.replyRaw : h.content
     }));
 
     const response = await fetch("/.netlify/functions/chat", {
@@ -488,21 +663,21 @@ async function sendMessage(){
     try {
       parsed = JSON.parse(clean);
     } catch(e){
-      parsed = { tr: rawText || "Üzgünüm, bir hata oldu.", ro: "A apărut o eroare la procesarea răspunsului.", note: "" };
+      parsed = { reply: rawText || "...", translation: "A apărut o eroare la procesarea răspunsului.", note: "" };
     }
 
     hideTyping();
-    addBubble('assistant', parsed.tr, parsed.ro, parsed.note);
-    history.push({role:'assistant', content: JSON.stringify(parsed), trRaw: parsed.tr});
-    partnerStatus.textContent = 'gata de discuție';
+    addBubble('assistant', parsed.reply, parsed.translation, parsed.note);
+    history.push({role:'assistant', content: JSON.stringify(parsed), replyRaw: parsed.reply});
+    partnerStatus.textContent = ui().partnerReady;
     if(autoplayToggle && autoplayToggle.checked){
       const lastSpeaker = chatBody.querySelector('.bubble-row.ai:last-of-type .speaker-btn');
-      speak(parsed.tr, lastSpeaker);
+      speak(parsed.reply, lastSpeaker);
     }
   } catch(err){
     hideTyping();
-    addBubble('assistant', 'Bağlantı hatası.', 'A apărut o eroare de conexiune. Încearcă din nou.', null);
-    partnerStatus.textContent = 'eroare de conexiune';
+    addBubble('assistant', ui().connectionErrorReply, ui().connectionErrorNote, null);
+    partnerStatus.textContent = ui().partnerErrorStatus;
     console.error(err);
   } finally {
     isLoading = false;
@@ -514,16 +689,12 @@ async function sendMessage(){
 sendBtn.onclick = sendMessage;
 chatInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') sendMessage(); });
 
-renderChips();
-
 // ===================== VOICE: Speech-to-Text (microfon) =====================
 const micBtn = document.getElementById('micBtn');
-const langTR = document.getElementById('langTR');
-const langRO = document.getElementById('langRO');
 const autoplayToggle = document.getElementById('autoplayToggle');
 const voiceUnsupported = document.getElementById('voiceUnsupported');
 
-let recognitionLang = 'tr-TR';
+let recognitionLang = LANGS[currentTarget].code;
 let isListening = false;
 let recognition = null;
 
@@ -554,12 +725,8 @@ if(SpeechRecognitionAPI){
     console.error('Eroare recunoaștere vocală:', event.error);
   };
   recognition.onend = ()=>{
-    // Unele browsere opresc singure recunoașterea continuă după o vreme
-    // (ex. tăcere lungă sau limită internă) — dacă utilizatorul nu a apăsat
-    // manual stop, o repornim automat ca microfonul să rămână "pornit",
-    // fără să pierdem ce s-a transcris deja (finalTranscript NU se resetează aici).
     if(isListening){
-      try { recognition.start(); return; } catch(e){ /* ignoră, oprește normal */ }
+      try { recognition.start(); return; } catch(e){ /* ignoră */ }
     }
     isListening = false;
     micBtn.classList.remove('listening');
@@ -568,13 +735,13 @@ if(SpeechRecognitionAPI){
 
   micBtn.onclick = ()=>{
     if(isListening){
-      isListening = false; // marcat înainte de stop, ca onend să nu repornească
+      isListening = false;
       recognition.stop();
       micBtn.classList.remove('listening');
       micBtn.innerHTML = '🎤';
       return;
     }
-    finalTranscript = chatInput.value ? chatInput.value.trim() + ' ' : ''; // pornește de la ce e deja scris în câmp
+    finalTranscript = chatInput.value ? chatInput.value.trim() + ' ' : '';
     recognition.lang = recognitionLang;
     try { recognition.start(); } catch(e){ console.error(e); }
   };
@@ -583,25 +750,13 @@ if(SpeechRecognitionAPI){
   voiceUnsupported.style.display = 'block';
 }
 
-langTR.onclick = ()=>{
-  recognitionLang = 'tr-TR';
-  langTR.classList.add('active');
-  langRO.classList.remove('active');
-};
-langRO.onclick = ()=>{
-  recognitionLang = 'ro-RO';
-  langRO.classList.add('active');
-  langTR.classList.remove('active');
-};
-
 // ===================== VOICE: Text-to-Speech (redare răspuns) =====================
 const speechSupported = 'speechSynthesis' in window;
-let turkishVoice = null;
+let cachedVoices = [];
 
 function loadVoices(){
   if(!speechSupported) return;
-  const voices = window.speechSynthesis.getVoices();
-  turkishVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('tr')) || null;
+  cachedVoices = window.speechSynthesis.getVoices();
 }
 if(speechSupported){
   loadVoices();
@@ -611,9 +766,11 @@ if(speechSupported){
 function speak(text, btnEl){
   if(!speechSupported || !text) return;
   window.speechSynthesis.cancel();
+  const targetCode = LANGS[currentTarget].code;
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'tr-TR';
-  if(turkishVoice) utter.voice = turkishVoice;
+  utter.lang = targetCode;
+  const matchVoice = cachedVoices.find(v => v.lang && v.lang.toLowerCase().startsWith(currentTarget));
+  if(matchVoice) utter.voice = matchVoice;
   utter.rate = 0.95;
 
   document.querySelectorAll('.speaker-btn.speaking').forEach(b=> b.classList.remove('speaking'));
@@ -624,6 +781,9 @@ function speak(text, btnEl){
 
   window.speechSynthesis.speak(utter);
 }
+
+// ===================== INIT =====================
+renderAll();
 </script>
 
 </body>
