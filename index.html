@@ -281,7 +281,7 @@
       </div>
     </div>
     <div class="chat-input">
-      <button class="mic-btn" id="micBtn" title="Vorbește">🎤</button>
+      <button class="mic-btn" id="micBtn" type="button" title="Vorbește" tabindex="-1">🎤</button>
       <input type="text" id="chatInput" placeholder="Scrie sau apasă microfonul..." />
       <button class="send-btn" id="sendBtn">Trimite</button>
     </div>
@@ -707,11 +707,14 @@ if(SpeechRecognitionAPI){
   recognition.maxAlternatives = 1;
 
   let finalTranscript = '';
+  let restartTimer = null;
 
   recognition.onstart = ()=>{
     isListening = true;
     micBtn.classList.add('listening');
     micBtn.innerHTML = '⏺';
+    // previne apariția tastaturii dacă input-ul avea cumva focus
+    if(document.activeElement === chatInput) chatInput.blur();
   };
   recognition.onresult = (event)=>{
     for(let i = event.resultIndex; i < event.results.length; i++){
@@ -723,10 +726,23 @@ if(SpeechRecognitionAPI){
   };
   recognition.onerror = (event)=>{
     console.error('Eroare recunoaștere vocală:', event.error);
+    // permisiune refuzată sau lipsă hardware: nu mai insista, oprește curat
+    if(event.error === 'not-allowed' || event.error === 'audio-capture' || event.error === 'service-not-allowed'){
+      isListening = false;
+    }
   };
   recognition.onend = ()=>{
+    clearTimeout(restartTimer);
     if(isListening){
-      try { recognition.start(); return; } catch(e){ /* ignoră */ }
+      // repornire — resetăm explicit limba de fiecare dată, ca să nu rămână
+      // "agățată" pe o valoare veche dacă browserul a schimbat ceva intern.
+      // Un mic delay evită bucle strânse de eșec-repornire pe unele telefoane/limbi.
+      restartTimer = setTimeout(()=>{
+        if(!isListening) return;
+        recognition.lang = recognitionLang;
+        try { recognition.start(); } catch(e){ console.error('Repornire eșuată:', e); isListening = false; micBtn.classList.remove('listening'); micBtn.innerHTML = '🎤'; }
+      }, 150);
+      return;
     }
     isListening = false;
     micBtn.classList.remove('listening');
@@ -734,8 +750,10 @@ if(SpeechRecognitionAPI){
   };
 
   micBtn.onclick = ()=>{
+    if(document.activeElement === chatInput) chatInput.blur();
     if(isListening){
       isListening = false;
+      clearTimeout(restartTimer);
       recognition.stop();
       micBtn.classList.remove('listening');
       micBtn.innerHTML = '🎤';
