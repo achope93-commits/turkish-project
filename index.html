@@ -682,7 +682,8 @@ async function sendMessage(){
   } finally {
     isLoading = false;
     sendBtn.disabled = false;
-    chatInput.focus();
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    if(!isTouchDevice) chatInput.focus();
   }
 }
 
@@ -703,10 +704,11 @@ const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechReco
 if(SpeechRecognitionAPI){
   recognition = new SpeechRecognitionAPI();
   recognition.continuous = true;
-  recognition.interimResults = false;
+  recognition.interimResults = true;
   recognition.maxAlternatives = 1;
 
   let finalTranscript = '';
+  let lastFinalChunk = '';
   let restartTimer = null;
 
   recognition.onstart = ()=>{
@@ -717,12 +719,21 @@ if(SpeechRecognitionAPI){
     if(document.activeElement === chatInput) chatInput.blur();
   };
   recognition.onresult = (event)=>{
+    let interim = '';
     for(let i = event.resultIndex; i < event.results.length; i++){
+      const chunk = event.results[i][0].transcript;
       if(event.results[i].isFinal){
-        finalTranscript += event.results[i][0].transcript + ' ';
+        // gardă simplă anti-duplicare: unele browsere pot re-livra
+        // ultimul fragment finalizat imediat după o repornire internă
+        if(chunk.trim() && chunk.trim() !== lastFinalChunk.trim()){
+          finalTranscript += chunk + ' ';
+          lastFinalChunk = chunk;
+        }
+      } else {
+        interim += chunk;
       }
     }
-    chatInput.value = finalTranscript.trim();
+    chatInput.value = (finalTranscript + interim).trim();
   };
   recognition.onerror = (event)=>{
     console.error('Eroare recunoaștere vocală:', event.error);
